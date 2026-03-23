@@ -13,6 +13,10 @@ export const seedCommand = new Command('seed')
   .option('-o, --output <file>', 'Output SQL file')
   .action(async (options: { count: string; output?: string }) => {
     const count = parseInt(options.count, 10);
+    if (isNaN(count) || count < 1) {
+      console.error(chalk.red('Error: count must be a positive number'));
+      process.exit(1);
+    }
     const spinner = ora(`Generating ${count} seed records per table...`).start();
 
     const schemaPath = getSchemaPath();

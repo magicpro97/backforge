@@ -1,4 +1,5 @@
 import type { Schema, Column } from '../types/index.js';
+import { validateIdentifier } from './schema.js';
 
 // Lightweight fake data generator (no external dependency)
 const FIRST_NAMES = [
@@ -178,8 +179,10 @@ export function seedDataToSQL(seedData: SeedData[]): string {
   const statements: string[] = [];
 
   for (const { table, rows } of seedData) {
+    validateIdentifier(table, 'table');
     for (const row of rows) {
       const columns = Object.keys(row);
+      columns.forEach((col) => validateIdentifier(col, 'column'));
       const values = columns.map((col) => {
         const val = row[col];
         if (val === null) return 'NULL';

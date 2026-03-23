@@ -29,44 +29,50 @@ export const initCommand = new Command('init')
   .argument('[provider]', 'Backend provider (supabase, firebase, pocketbase, appwrite)')
   .description('Initialize a new backend project with guided wizard')
   .action(async (providerArg?: string) => {
-    console.log(chalk.bold('\n🗄️  BackForge — Backend Bootstrapper\n'));
+    try {
+      console.log(chalk.bold('\n🗄️  BackForge — Backend Bootstrapper\n'));
 
-    let providerName: ProviderName;
+      let providerName: ProviderName;
 
-    if (providerArg && providerArg in PROVIDERS) {
-      providerName = providerArg as ProviderName;
-    } else {
-      const answers = await inquirer.prompt([
-        {
-          type: 'list',
-          name: 'provider',
-          message: 'Choose your backend provider:',
-          choices: Object.entries(PROVIDERS).map(([key, val]) => ({
-            name: `${val.name} — ${val.description}`,
-            value: key,
-          })),
-        },
-      ]);
-      providerName = answers.provider;
+      if (providerArg && providerArg in PROVIDERS) {
+        providerName = providerArg as ProviderName;
+      } else {
+        const answers = await inquirer.prompt([
+          {
+            type: 'list',
+            name: 'provider',
+            message: 'Choose your backend provider:',
+            choices: Object.entries(PROVIDERS).map(([key, val]) => ({
+              name: `${val.name} — ${val.description}`,
+              value: key,
+            })),
+          },
+        ]);
+        providerName = answers.provider;
+      }
+
+      const provider = getProvider(providerName);
+      console.log(chalk.blue(`\nInitializing ${PROVIDERS[providerName].name}...\n`));
+
+      await provider.init(process.cwd());
+
+      // Save local config
+      setLocalConfig({
+        provider: providerName,
+        projectDir: process.cwd(),
+        schemaPath: 'backforge-schema.yaml',
+        outputDir: 'src/types',
+      });
+
+      console.log(chalk.green('\n✅ Project initialized successfully!'));
+      console.log(chalk.dim('\nNext steps:'));
+      console.log(chalk.dim('  1. backforge schema define    — Define your data models'));
+      console.log(chalk.dim('  2. backforge schema apply     — Apply schema to database'));
+      console.log(chalk.dim('  3. backforge types generate   — Generate TypeScript types'));
+      console.log(chalk.dim('  4. backforge seed             — Seed with fake data'));
+    } catch (error) {
+      const chalk = (await import('chalk')).default;
+      console.error(chalk.red(`\n  ✗ ${error instanceof Error ? error.message : String(error)}\n`));
+      process.exit(1);
     }
-
-    const provider = getProvider(providerName);
-    console.log(chalk.blue(`\nInitializing ${PROVIDERS[providerName].name}...\n`));
-
-    await provider.init(process.cwd());
-
-    // Save local config
-    setLocalConfig({
-      provider: providerName,
-      projectDir: process.cwd(),
-      schemaPath: 'backforge-schema.yaml',
-      outputDir: 'src/types',
-    });
-
-    console.log(chalk.green('\n✅ Project initialized successfully!'));
-    console.log(chalk.dim('\nNext steps:'));
-    console.log(chalk.dim('  1. backforge schema define    — Define your data models'));
-    console.log(chalk.dim('  2. backforge schema apply     — Apply schema to database'));
-    console.log(chalk.dim('  3. backforge types generate   — Generate TypeScript types'));
-    console.log(chalk.dim('  4. backforge seed             — Seed with fake data'));
   });

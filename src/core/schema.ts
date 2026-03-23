@@ -2,6 +2,13 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { parse, stringify } from 'yaml';
 import type { Schema, Table, Column } from '../types/index.js';
 
+export function validateIdentifier(name: string, type: string): string {
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+    throw new Error(`Invalid ${type} name: "${name}". Only letters, numbers, and underscores allowed.`);
+  }
+  return name;
+}
+
 export function parseSchema(yamlContent: string): Schema {
   const parsed = parse(yamlContent);
 
@@ -14,15 +21,24 @@ export function parseSchema(yamlContent: string): Schema {
       throw new Error(`Invalid table definition: each table must have "name" and "columns"`);
     }
 
-    const columns: Column[] = (table.columns as Record<string, unknown>[]).map((col) => ({
-      name: col.name as string,
-      type: col.type as string,
-      primary: col.primary as boolean | undefined,
-      unique: col.unique as boolean | undefined,
-      nullable: col.nullable as boolean | undefined,
-      default: col.default as string | undefined,
-      references: col.references as string | undefined,
-    }));
+    const columns: Column[] = (table.columns as Record<string, unknown>[]).map((col) => {
+      if (!col.name || typeof col.name !== 'string') {
+        throw new Error(`Invalid column in table "${table.name}": missing or invalid "name"`);
+      }
+      if (!col.type || typeof col.type !== 'string') {
+        throw new Error(`Invalid column "${col.name}" in table "${table.name}": missing or invalid "type"`);
+      }
+
+      return {
+        name: col.name as string,
+        type: col.type as string,
+        primary: col.primary as boolean | undefined,
+        unique: col.unique as boolean | undefined,
+        nullable: col.nullable as boolean | undefined,
+        default: col.default as string | undefined,
+        references: col.references as string | undefined,
+      };
+    });
 
     return { name: table.name as string, columns };
   });
@@ -47,9 +63,11 @@ export function schemaToSQL(schema: Schema): string {
   const statements: string[] = [];
 
   for (const table of schema.tables) {
+    validateIdentifier(table.name, 'table');
     const columnDefs: string[] = [];
 
     for (const col of table.columns) {
+      validateIdentifier(col.name, 'column');
       const parts: string[] = [col.name, mapColumnType(col.type)];
 
       if (col.primary) parts.push('PRIMARY KEY');
@@ -63,7 +81,13 @@ export function schemaToSQL(schema: Schema): string {
     // Add foreign key constraints
     for (const col of table.columns) {
       if (col.references) {
-        const [refTable, refColumn] = col.references.split('.');
+        const parts = col.references.split('.');
+        if (parts.length !== 2 || !parts[0] || !parts[1]) {
+          throw new Error(`Invalid reference "${col.references}" in column "${col.name}". Expected format: table.column`);
+        }
+        const [refTable, refColumn] = parts;
+        validateIdentifier(refTable, 'reference table');
+        validateIdentifier(refColumn, 'reference column');
         columnDefs.push(`  FOREIGN KEY (${col.name}) REFERENCES ${refTable}(${refColumn})`);
       }
     }

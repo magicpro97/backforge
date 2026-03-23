@@ -16,35 +16,41 @@ const DEPLOY_TARGETS: Record<ProviderName, string[]> = {
 export const deployCommand = new Command('deploy')
   .description('Deploy backend to cloud provider')
   .action(async () => {
-    console.log(chalk.bold('\n☁️  BackForge Deploy\n'));
+    try {
+      console.log(chalk.bold('\n☁️  BackForge Deploy\n'));
 
-    const config = getMergedConfig();
+      const config = getMergedConfig();
 
-    if (!config.provider) {
-      console.log(chalk.red('No provider configured.'));
-      console.log(chalk.yellow('  Run: backforge init'));
-      return;
+      if (!config.provider) {
+        console.log(chalk.red('No provider configured.'));
+        console.log(chalk.yellow('  Run: backforge init'));
+        return;
+      }
+
+      const providerName = config.provider;
+      const targets = DEPLOY_TARGETS[providerName];
+
+      console.log(chalk.blue(`Provider: ${providerName}`));
+
+      if (targets.length > 1) {
+        const answer = await inquirer.prompt([
+          {
+            type: 'list',
+            name: 'target',
+            message: 'Choose deployment target:',
+            choices: targets,
+          },
+        ]);
+        console.log(chalk.dim(`\nDeploying to ${answer.target}...\n`));
+      }
+
+      const provider = getProviderInstance(providerName);
+      await provider.deploy();
+
+      console.log(chalk.green('\n✅ Deployment complete'));
+    } catch (error) {
+      const chalk = (await import('chalk')).default;
+      console.error(chalk.red(`\n  ✗ ${error instanceof Error ? error.message : String(error)}\n`));
+      process.exit(1);
     }
-
-    const providerName = config.provider;
-    const targets = DEPLOY_TARGETS[providerName];
-
-    console.log(chalk.blue(`Provider: ${providerName}`));
-
-    if (targets.length > 1) {
-      const answer = await inquirer.prompt([
-        {
-          type: 'list',
-          name: 'target',
-          message: 'Choose deployment target:',
-          choices: targets,
-        },
-      ]);
-      console.log(chalk.dim(`\nDeploying to ${answer.target}...\n`));
-    }
-
-    const provider = getProviderInstance(providerName);
-    await provider.deploy();
-
-    console.log(chalk.green('\n✅ Deployment complete'));
   });
