@@ -5,10 +5,11 @@
   "targets": {
     "linh-s-blog": {
       "hosting": {
-        "backforge": [
-          "backforge"
+        "backforge-landing": [
+          "backforge-landing"
         ]
       }
     }
-  }
+  },
+  "etags": {}
 }
