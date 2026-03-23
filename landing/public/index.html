@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BackForge — Backend Bootstrapper CLI</title>
+  <meta name="description" content="Bootstrap your backend in seconds. Schema, types, seed, deploy for Supabase, Firebase, PocketBase, Appwrite.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --surface-2: #1a1a2e;
+      --border: #2a2a3e;
+      --text: #e4e4ef;
+      --text-dim: #8888a4;
+      --accent: #6c5ce7;
+      --accent-glow: #7c6cf7;
+      --green: #2ecc71;
+      --orange: #f39c12;
+      --cyan: #00cec9;
+      --pink: #fd79a8;
+      --red: #e74c3c;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* Nav */
+    nav {
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.9);
+    }
+    nav .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .nav-links { display: flex; gap: 24px; }
+    .nav-links a {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    /* Hero */
+    .hero {
+      padding: 100px 0 80px;
+      text-align: center;
+      position: relative;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(108, 92, 231, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 0.85rem;
+      color: var(--accent-glow);
+      margin-bottom: 24px;
+    }
+    h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, var(--text) 0%, var(--text-dim) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      font-size: 1.2rem;
+      color: var(--text-dim);
+      max-width: 600px;
+      margin: 0 auto 36px;
+    }
+
+    /* Install */
+    .install-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1rem;
+      margin-bottom: 16px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .install-box:hover { border-color: var(--accent); }
+    .install-box .dollar { color: var(--accent); }
+    .install-box .copy {
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: var(--surface-2);
+    }
+
+    /* Terminal */
+    .terminal-section { padding: 60px 0; }
+    .terminal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      max-width: 750px;
+      margin: 0 auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 18px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+    }
+    .terminal-dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+    }
+    .terminal-dot.red { background: #ff5f57; }
+    .terminal-dot.yellow { background: #ffbd2e; }
+    .terminal-dot.green { background: #28c840; }
+    .terminal-title {
+      flex: 1;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+    }
+    .terminal-body {
+      padding: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88rem;
+      line-height: 1.7;
+      overflow-x: auto;
+    }
+    .terminal-body .prompt { color: var(--green); }
+    .terminal-body .cmd { color: var(--text); }
+    .terminal-body .output { color: var(--text-dim); }
+    .terminal-body .success { color: var(--green); }
+    .terminal-body .accent { color: var(--accent-glow); }
+    .terminal-body .cyan { color: var(--cyan); }
+
+    /* Providers */
+    .providers-section {
+      padding: 80px 0;
+    }
+    .section-title {
+      font-size: 2rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .section-subtitle {
+      text-align: center;
+      color: var(--text-dim);
+      margin-bottom: 48px;
+    }
+    .providers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+    }
+    .provider-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .provider-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+    }
+    .provider-icon {
+      font-size: 2.2rem;
+      margin-bottom: 14px;
+    }
+    .provider-card h3 {
+      font-size: 1.15rem;
+      margin-bottom: 8px;
+    }
+    .provider-card p {
+      color: var(--text-dim);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    /* Features */
+    .features-section { padding: 80px 0; }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px;
+    }
+    .feature-card .icon { font-size: 1.8rem; margin-bottom: 12px; }
+    .feature-card h3 { font-size: 1.1rem; margin-bottom: 8px; }
+    .feature-card p { color: var(--text-dim); font-size: 0.9rem; }
+
+    /* Footer */
+    footer {
+      padding: 40px 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+    }
+    footer a { color: var(--accent-glow); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 768px) {
+      h1 { font-size: 2.2rem; }
+      .subtitle { font-size: 1rem; }
+      .providers-grid { grid-template-columns: 1fr 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="container">
+      <div class="logo">🗄️ BackForge</div>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#providers">Providers</a>
+        <a href="https://github.com/magicpro97/backforge">GitHub</a>
+        <a href="https://www.npmjs.com/package/backforge">npm</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="container">
+      <div class="badge">🚀 v1.0 — Backend Bootstrapper CLI</div>
+      <h1>Bootstrap your backend<br>in seconds</h1>
+      <p class="subtitle">
+        Schema, types, seed data, and deploy — all from one CLI.
+        Supports Supabase, Firebase, PocketBase, and Appwrite.
+      </p>
+      <div class="install-box" onclick="navigator.clipboard.writeText('npm install -g backforge')">
+        <span class="dollar">$</span>
+        <span>npm install -g backforge</span>
+        <span class="copy">copy</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="terminal-section">
+    <div class="container">
+      <div class="terminal">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+          <div class="terminal-title">backforge — terminal</div>
+        </div>
+        <div class="terminal-body">
+          <div><span class="prompt">$</span> <span class="cmd">backforge init supabase</span></div>
+          <div class="output">🗄️  BackForge — Backend Bootstrapper</div>
+          <div class="success">✔ Supabase project initialized</div>
+          <br>
+          <div><span class="prompt">$</span> <span class="cmd">backforge schema define</span></div>
+          <div class="output">📋 BackForge Schema Builder</div>
+          <div class="output">? Table name: <span class="cyan">users</span></div>
+          <div class="output">? Add auto UUID primary key (id)? <span class="cyan">Yes</span></div>
+          <div class="output">? Column name: <span class="cyan">email</span></div>
+          <div class="output">? Column type: <span class="cyan">string</span></div>
+          <div class="success">✔ Table "users" added with 4 columns</div>
+          <br>
+          <div><span class="prompt">$</span> <span class="cmd">backforge types generate</span></div>
+          <div class="success">✔ TypeScript types generated</div>
+          <div class="output">  📁 src/types/database.ts</div>
+          <div class="accent">  export interface User {</div>
+          <div class="accent">    id: string;</div>
+          <div class="accent">    email: string;</div>
+          <div class="accent">    name: string;</div>
+          <div class="accent">    created_at: Date;</div>
+          <div class="accent">  }</div>
+          <br>
+          <div><span class="prompt">$</span> <span class="cmd">backforge seed --count 50</span></div>
+          <div class="success">✔ Generated 50 records for 2 tables</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="providers-section" id="providers">
+    <div class="container">
+      <h2 class="section-title">Supported Providers</h2>
+      <p class="section-subtitle">One CLI, multiple backend platforms</p>
+      <div class="providers-grid">
+        <div class="provider-card">
+          <div class="provider-icon">⚡</div>
+          <h3>Supabase</h3>
+          <p>Open-source Firebase alternative powered by PostgreSQL. Full SQL access, realtime subscriptions, auth, and storage.</p>
+        </div>
+        <div class="provider-card">
+          <div class="provider-icon">🔥</div>
+          <h3>Firebase</h3>
+          <p>Google's app development platform with Firestore NoSQL database, authentication, hosting, and cloud functions.</p>
+        </div>
+        <div class="provider-card">
+          <div class="provider-icon">📦</div>
+          <h3>PocketBase</h3>
+          <p>Open-source backend in a single binary. Embedded SQLite database, realtime subscriptions, auth, and file storage.</p>
+        </div>
+        <div class="provider-card">
+          <div class="provider-icon">🏗️</div>
+          <h3>Appwrite</h3>
+          <p>Open-source backend server for web and mobile apps. Databases, auth, functions, storage, and messaging.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features-section" id="features">
+    <div class="container">
+      <h2 class="section-title">Everything you need</h2>
+      <p class="section-subtitle">From schema to production in minutes</p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="icon">📋</div>
+          <h3>Schema-First Design</h3>
+          <p>Define data models in YAML with an interactive builder. Auto-generate migrations and keep your schema in version control.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">📝</div>
+          <h3>TypeScript Types</h3>
+          <p>Generate clean TypeScript interfaces from your schema. Insert types, update types, and full row types — all auto-generated.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">🎲</div>
+          <h3>Smart Seeding</h3>
+          <p>Generate realistic fake data with smart field detection. Emails, names, timestamps — all contextually appropriate.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">☁️</div>
+          <h3>One-Command Deploy</h3>
+          <p>Deploy to Supabase Cloud, Firebase, Railway, or Fly.io. Provider-specific deployment with guided setup.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">🔧</div>
+          <h3>Interactive Wizards</h3>
+          <p>Guided setup for every step. Choose providers, define columns, configure credentials — all with interactive prompts.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">🔄</div>
+          <h3>Provider Agnostic</h3>
+          <p>Switch between Supabase, Firebase, PocketBase, and Appwrite without rewriting your schema or types.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p>Built by <a href="https://github.com/magicpro97">magicpro97</a> · <a href="https://github.com/magicpro97/backforge">GitHub</a> · MIT License</p>
+    </div>
+  </footer>
+
+</body>
+</html>

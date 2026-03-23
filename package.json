@@ -1,0 +1,55 @@
+{
+  "name": "backforge",
+  "version": "1.0.0",
+  "description": "🗄️ Backend Bootstrapper CLI — init, schema, types, seed, deploy for Supabase, Firebase, PocketBase",
+  "main": "dist/index.js",
+  "type": "module",
+  "bin": {
+    "backforge": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc && node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "backend",
+    "supabase",
+    "firebase",
+    "pocketbase",
+    "appwrite",
+    "cli",
+    "schema",
+    "types",
+    "seed",
+    "deploy"
+  ],
+  "author": "magicpro97",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/magicpro97/backforge.git"
+  },
+  "homepage": "https://github.com/magicpro97/backforge#readme",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "inquirer": "^9.3.7",
+    "ora": "^8.1.1",
+    "yaml": "^2.6.1"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.9",
+    "@types/node": "^20.17.0",
+    "typescript": "^5.6.3"
+  }
+}
