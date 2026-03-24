@@ -1,5 +1,5 @@
 {
-  "name": "backforge",
+  "name": "@magicpro97/backforge",
   "version": "1.0.0",
   "description": "🗄️ Backend Bootstrapper CLI — init, schema, types, seed, deploy for Supabase, Firebase, PocketBase",
   "main": "dist/index.js",
@@ -35,6 +35,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/magicpro97/backforge.git"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "homepage": "https://github.com/magicpro97/backforge#readme",
   "engines": {

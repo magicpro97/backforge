@@ -16,7 +16,7 @@ Initialize, define schemas, generate types, seed data, and deploy across multipl
 ## Installation
 
 ```bash
-npm install -g backforge
+npm install -g @magicpro97/backforge
 ```
 
 ## Quick Start
