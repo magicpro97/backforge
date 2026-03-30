@@ -1,4 +1,4 @@
-import type { Schema, Column } from '../types/index.js';
+import type { Schema, Table, Column } from '../types/index.js';
 import { validateIdentifier } from './schema.js';
 
 // Lightweight fake data generator (no external dependency)
@@ -123,12 +123,48 @@ export interface SeedData {
   rows: Record<string, unknown>[];
 }
 
+// Sort tables so that referenced tables are processed before referencing tables
+function topologicalSort(tables: Table[]): Table[] {
+  const sorted: Table[] = [];
+  const visited = new Set<string>();
+  const visiting = new Set<string>();
+  const tableMap = new Map(tables.map(t => [t.name, t]));
+
+  function visit(table: Table): void {
+    if (visited.has(table.name)) return;
+    if (visiting.has(table.name)) return; // Circular dependency, skip
+    visiting.add(table.name);
+
+    for (const col of table.columns) {
+      if (col.references) {
+        const [refTableName] = col.references.split('.');
+        const refTable = tableMap.get(refTableName);
+        if (refTable && refTable.name !== table.name) {
+          visit(refTable);
+        }
+      }
+    }
+
+    visiting.delete(table.name);
+    visited.add(table.name);
+    sorted.push(table);
+  }
+
+  for (const table of tables) {
+    visit(table);
+  }
+
+  return sorted;
+}
+
 export function generateSeedData(schema: Schema, count: number): SeedData[] {
   const allSeedData: SeedData[] = [];
   const primaryKeys: Record<string, string[]> = {};
 
+  const sortedTables = topologicalSort(schema.tables);
+
   // First pass: generate data for all tables
-  for (const table of schema.tables) {
+  for (const table of sortedTables) {
     const rows: Record<string, unknown>[] = [];
 
     for (let i = 0; i < count; i++) {
@@ -175,6 +211,15 @@ export function generateSeedData(schema: Schema, count: number): SeedData[] {
   return allSeedData;
 }
 
+function escapeSQL(value: string): string {
+  return value
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "''")
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r')
+    .replace(/\0/g, '');
+}
+
 export function seedDataToSQL(seedData: SeedData[]): string {
   const statements: string[] = [];
 
@@ -186,9 +231,9 @@ export function seedDataToSQL(seedData: SeedData[]): string {
       const values = columns.map((col) => {
         const val = row[col];
         if (val === null) return 'NULL';
-        if (typeof val === 'string') return `'${val.replace(/'/g, "''")}'`;
+        if (typeof val === 'string') return `'${escapeSQL(val)}'`;
         if (typeof val === 'boolean') return val ? 'TRUE' : 'FALSE';
-        if (typeof val === 'object') return `'${JSON.stringify(val).replace(/'/g, "''")}'`;
+        if (typeof val === 'object') return `'${escapeSQL(JSON.stringify(val))}'`;
         return String(val);
       });
 
